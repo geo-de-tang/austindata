@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import { bmkToNumber } from './bmkToNumber';
 import { Data } from './Data';
 import { sleep } from './sleep';
 // Or import puppeteer from 'puppeteer-core';
@@ -44,41 +45,38 @@ const main = async () => {
             }, element);
 
 
+            const extra = { Rows: 0, Columns: '0', CSV: '' };
 
             if (keyword === "Locations and Maps") {
                 console.log('skipping', title)
             } else {
                 await subPage.goto(subUrl as string);
 
-                await subPage.waitForSelector('dl.metadata-pair');
+                await subPage.waitForSelector('dl.metadata-row');
 
-                const pairs = await subPage.$$('dl.metadata-pair');
+                const pairs = await subPage.$$('dl.metadata-row');
 
                 for (const pair of pairs) {
-                    const { key, value } = await subPage.evaluate(el => {
-                        const key = el.querySelector('dt.metadata-pair-key')?.textContent;
-                        const value = el.querySelector('dd.metadata-pair-value')?.textContent;
+                    // console.log(pair)
+                    const { object } = await subPage.evaluate(el => {
 
-                        return { key, value };
+                        const keys = el.querySelectorAll('dt.metadata-pair-key');
+                        const values = el.querySelectorAll('dd.metadata-pair-value');
+
+                        const ret: any = {}
+
+                        for (const key in keys) {
+                            const keyText = keys[key].textContent ?? 'null'
+
+                            Object.assign(ret, { [keyText]: values[key].textContent });
+
+                        }
+
+                        return { object: ret };
                     }, pair);
 
-                    if (key === 'Columns') {
-                        // data[data.length - 1].columns = parseInt(value as string);
-                        console.log(value)
-
-                    }
-
-                    if (key === 'Rows') {
-                        // data[data.length - 1].rows = parseInt(value as string);
-                        console.log(value)
-
-                    }
-
-                    if (key === 'CSV') {
-                        // data[data.length - 1].csv = value as string;
-                        console.log(value)
-
-                    }
+                    Object.assign(extra, object);
+                    Object.assign(extra, { 'Rows': bmkToNumber(object['Rows'] as string) });
                 }
 
             }
@@ -88,9 +86,9 @@ const main = async () => {
             data.push({
                 title: title as string,
                 keyword: keyword as string,
-                rows: 0,
-                columns: 0,
-                csv: '',
+                rows: extra['Rows'],
+                columns: parseInt(extra['Columns'] as string),
+                csv: extra['CSV'],
                 url: subUrl as string,
                 last_updated: new Date(updated as string),
                 views: parseInt((views as string).replace(/,/g, '')),
@@ -100,8 +98,7 @@ const main = async () => {
 
 
         // avoid triggering too many request errors
-        await sleep(2000);
-        break;
+        await sleep(1400);
     }
     console.log(data);
 

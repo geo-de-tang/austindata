@@ -1,4 +1,6 @@
-export function bmkToNumber(str: string): number {
+export type bmkToNumber = (str: string) => number;
+
+export const bmkToNumber: bmkToNumber = (str) => {
     const suffixes = { 'K': 1e3, 'M': 1e6, 'B': 1e9 };
     const regex = /^(\d+(\.\d+)?)([KMB])$/;
     const match = str.match(regex);
