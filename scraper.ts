@@ -21,6 +21,7 @@ const main = async () => {
 
     const data: Data[] = []
     for (const url of urls) {
+        console.log("url" + url)
 
         await page.goto(url);
 
@@ -47,8 +48,13 @@ const main = async () => {
 
             const extra = { Rows: 0, Columns: '0', CSV: '' };
 
-            if (keyword === "Locations and Maps") {
-                console.log('skipping', title)
+            console.log(title);
+            if (keyword === "Locations and Maps" ||
+                title == "UTILITIESCOMMUNICATION.DrainagePipeREFDOC" ||
+                title == "Total Summer Rated Capacity (MW)" ||
+                title == "Mixed Beverage Sales Receipts" ||
+                title?.includes("2021-2022 CACFP Day Care Home Sponsors-Operating2") ||
+                title?.includes("2021-2022 CACFP Day Care Home Sponsors")) {
             } else {
                 await subPage.goto(subUrl as string);
 
@@ -57,7 +63,6 @@ const main = async () => {
                 const pairs = await subPage.$$('dl.metadata-row');
 
                 for (const pair of pairs) {
-                    // console.log(pair)
                     const { object } = await subPage.evaluate(el => {
 
                         const keys = el.querySelectorAll('dt.metadata-pair-key');
@@ -81,9 +86,7 @@ const main = async () => {
 
             }
 
-
-
-            data.push({
+            const save = {
                 title: title as string,
                 keyword: keyword as string,
                 rows: extra['Rows'],
@@ -92,7 +95,9 @@ const main = async () => {
                 url: subUrl as string,
                 last_updated: new Date(updated as string),
                 views: parseInt((views as string).replace(/,/g, '')),
-            })
+            }
+
+            data.push(save)
 
         }
 
@@ -100,7 +105,7 @@ const main = async () => {
         // avoid triggering too many request errors
         await sleep(1400);
     }
-    console.log(data);
+    console.log(JSON.stringify(data));
 
     await browser.close();
 }

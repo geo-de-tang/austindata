@@ -9,6 +9,11 @@ export const bmkToNumber: bmkToNumber = (str) => {
         const number = parseFloat(match[1]);
         const suffix = match[3];
         return number * (suffixes[suffix as 'K' | 'B' | 'M'] || 1);
+    } else if (!str.match(/[a-zA-Z]/)) {
+        if (str.includes(',')) {
+            return parseInt(str.replace(/,/g, ''));
+        }
+        return parseInt(str);
     }
 
     return NaN; // Return NaN if the input string is not in the expected format
@@ -17,5 +22,5 @@ export const bmkToNumber: bmkToNumber = (str) => {
 
 // Example usage:
 // console.log(bmkToNumber("2.26M")); // 2260000
-// console.log(bmkToNumber("1.5K"));  // 1500
+// console.log(bmkToNumber("38"));  // 1500
 // console.log(bmkToNumber("3B"));    // 
