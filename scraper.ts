@@ -9,7 +9,7 @@ const BASE_URL = 'https://data.austintexas.gov/browse?limitTo=datasets,filters&p
 const main = async () => {
     // Launch the browser and open a new blank page
     const browser = await puppeteer.launch({
-        headless: false,
+        // headless: false,
     });
     const page = await browser.newPage();
 
@@ -17,12 +17,10 @@ const main = async () => {
 
     // Navigate the page to a URL.
 
-    const urls = new Array(440).fill(0).map((_, i) => `${BASE_URL}${i + 1}`);
+    const urls = new Array(184).fill(0).map((_, i) => `${BASE_URL}${i + 1}`);
 
     const data: Data[] = []
     for (const url of urls) {
-        console.log("url" + url)
-
         await page.goto(url);
 
         // Set screen size.
@@ -48,7 +46,6 @@ const main = async () => {
 
             const extra = { Rows: 0, Columns: '0', CSV: '' };
 
-            console.log(title);
             if (keyword === "Locations and Maps" ||
                 title == "UTILITIESCOMMUNICATION.DrainagePipeREFDOC" ||
                 title == "Total Summer Rated Capacity (MW)" ||
@@ -56,9 +53,16 @@ const main = async () => {
                 title?.includes("2021-2022 CACFP Day Care Home Sponsors-Operating2") ||
                 title?.includes("2021-2022 CACFP Day Care Home Sponsors")) {
             } else {
+
                 await subPage.goto(subUrl as string);
 
-                await subPage.waitForSelector('dl.metadata-row');
+                await sleep(1500);
+
+                try {
+                    await subPage.waitForSelector('dl.metadata-row');
+                } catch (error) {
+                    console.log('error' + title);
+                }
 
                 const pairs = await subPage.$$('dl.metadata-row');
 
